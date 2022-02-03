@@ -71,8 +71,13 @@ public class Converter {
             Iterator<String[]> iterator = full.iterator();
             
             // INSERT YOUR CODE HERE
+            String[] line = iterator.next();
+            for (String field : line) { System.out.println(field); }
             
-        }        
+            StringWriter writer = new StringWriter();
+            CSVWriter csvWriter = new CSVWriter(writer, ',', '"', '\\', "\n");
+            
+            }        
         catch(Exception e) { e.printStackTrace(); }
         
         return results.trim();
@@ -83,13 +88,50 @@ public class Converter {
         
         String results = "";
         
-        try {
-
+        try {            
             StringWriter writer = new StringWriter();
             CSVWriter csvWriter = new CSVWriter(writer, ',', '"', '\\', "\n");
             
             // INSERT YOUR CODE HERE
+            JSONParser parser = new JSONParser();
+            JSONObject jsonObject = (JSONObject)parser.parse(jsonString);
             
+            // JSONArrays to store data from all three keys
+            JSONArray data = (JSONArray)jsonObject.get("data");
+            JSONArray rowHead = (JSONArray)jsonObject.get("rowHeaders");
+            JSONArray colHead = (JSONArray)jsonObject.get("colHeaders");
+
+            JSONArray dEntry;
+            String chEntry; // column heading entry
+            
+            String[] chEntries = new String[colHead.size()]; // string arrays for column heading and row
+            String[] row = new String[colHead.size()];       // row is a temporary container for all entries of a given row
+            
+            // each column heading entry is stored in the 'chEntries' string array
+            for (int i = 0; i < colHead.size(); ++i) {
+                chEntry = (String)(colHead.get(i));
+                chEntries[i] = chEntry;
+            }
+            csvWriter.writeNext(chEntries);              // column headings are written to csvWriter
+            
+            // csv table excluding the col headings accounted for above
+            for (int i = 0; i < rowHead.size(); ++i) {
+                row[0] = (String)(rowHead.get(i));      // row heading at subscript 'i' stored into first index of 'row' container
+                dEntry = (JSONArray)(data.get(i));      // dEntry is a list of four entries in a given row
+                for (int k = 0; k < dEntry.size(); ++k) {
+                    row[k+1] = dEntry.get(k).toString(); // each long number in the aforementioned list is converted to string, stored in row at 'k+1'
+                }
+                csvWriter.writeNext(row);  // results of 'row' get written to csvWriter before being refreshed in next iteration
+            }
+            results = writer.toString();   // finally, entire string gets stored in results, and returned at end of func
+
+            /*
+            JSONArray element0 = (JSONArray)(data.get(0));
+            System.err.println(element0.get(0));
+             */
+            //Object[] arr = jsonObject.entrySet().toArray();
+            //System.out.println(arr[1]);
+            //jsonObject.;
         }
         
         catch(Exception e) { e.printStackTrace(); }
