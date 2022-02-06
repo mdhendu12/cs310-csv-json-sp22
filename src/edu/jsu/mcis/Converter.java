@@ -71,12 +71,42 @@ public class Converter {
             Iterator<String[]> iterator = full.iterator();
             
             // INSERT YOUR CODE HERE
-            String[] line = iterator.next();
-            for (String field : line) { System.out.println(field); }
+            JSONArray records = new JSONArray(); // json array for records
+            LinkedHashMap<String, Object> jsonObject = new LinkedHashMap<>(); // this map has string keys, and object values (since data in each key varies)
+
+            // these two string arraylists hold strings for row/column headers
+            ArrayList<String> rowHeaders = new ArrayList<String>();
+            ArrayList<String> colHeaders = new ArrayList<String>();
+
+            ArrayList<ArrayList<Number>> listOfLists = new ArrayList<ArrayList<Number>>(); // accounts for nested lists of numerical data
             
-            StringWriter writer = new StringWriter();
-            CSVWriter csvWriter = new CSVWriter(writer, ',', '"', '\\', "\n");
+            String[] row = iterator.next(); // this stores all the records of a given row in one string array
+            for (String field : row) { colHeaders.add(field); } // this for grabs all the column headers, and stores them in colHeaders string array
+            while(iterator.hasNext()) {
+                String field;  // declaring 'string' here resolves conflict with the above for loop.              
+                ArrayList<Number> data = new ArrayList<Number>(); // ArrayList of numbers, to hold all number fields on a given row
+                
+                row = iterator.next(); // grabs the next row for use in the for loop below
+                for (int i = 0; i < row.length; ++i) { // for iterates over each record in row
+                    field = row[i]; // field holds the 'i'th column entry of the row
+                    if (i == 0) {
+                        rowHeaders.add((String)(field)); // first field of each row (other than column heading) is a row header, so gets stored to string array
+                    }
+                    else {
+                        data.add(Integer.parseInt(field)); // the other four row records are
+                    }             
+                }
+                listOfLists.add(data); // adds the list of a row's data to list of lists
+                
+            }
+            jsonObject.put("rowHeaders", rowHeaders);    // all three key/value pairs stored in jsonObject
+            jsonObject.put("data", listOfLists);
+            jsonObject.put("colHeaders", colHeaders);
+
+            records.add(jsonObject); // add the jsonObject with all data to records
             
+            results = JSONValue.toJSONString(records); // JSON string of 'records' stored in 'results'
+            results = results.substring(1, results.length()-1); // gets rid of extra brackets at the bookends of the string
             }        
         catch(Exception e) { e.printStackTrace(); }
         
@@ -124,14 +154,7 @@ public class Converter {
                 csvWriter.writeNext(row);  // results of 'row' get written to csvWriter before being refreshed in next iteration
             }
             results = writer.toString();   // finally, entire string gets stored in results, and returned at end of func
-
-            /*
-            JSONArray element0 = (JSONArray)(data.get(0));
-            System.err.println(element0.get(0));
-             */
-            //Object[] arr = jsonObject.entrySet().toArray();
-            //System.out.println(arr[1]);
-            //jsonObject.;
+            
         }
         
         catch(Exception e) { e.printStackTrace(); }
